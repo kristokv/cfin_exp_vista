@@ -1,14 +1,14 @@
 #  Calanus finmarchicus experiment - VISTA
 
-<b>Data (img.rda) and R code (analyses_cfin.R) to analyze effects of food level and predator cue on <i>Calanus finmarchicus</i> growth and development.<br>
+<b>Data (img.rda) and R code (analyses_cfin.R) to analyze effects of food level and presence of predator cues on <i>Calanus finmarchicus</i> growth and development.<br>
 The data were collected during a lab experiment conducted in September/October 2019 at NTNU SeaLab.</b>
 
-<b>img.rda</b> contains the following R variables:<br>
+<b>img.rda</b> contains the following variables:<br>
 day: day of sampling during the experiment<br>
 tank: experimental tank (A:L)<br>
 treatment: experimental treatment<br>
-food: food level<br>
-predation: presence or absence of predator cues<br>
+food: food level in treatment<br>
+predation: presence or absence of predator cues in treatment<br>
 stage: <i>C. finmarchicus</i> developmental stage<br>
 stage_num: numeral of stage<br>
 body_length: prosome length (mm)<br>

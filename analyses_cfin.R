@@ -1,4 +1,4 @@
-#R script to analyze data on C. finmarchicus response to food level and predator cue
+#R script to analyze data on C. finmarchicus growth and development in response to food level and presence of predator cues
 
 #Kristina Kvile, July 2020
 
