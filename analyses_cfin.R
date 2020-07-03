@@ -6,7 +6,6 @@
 library(mgcv)
 load("img.rda")
 
-
 #Experimental treatments:
 treatments<-levels(img$treatment)
 #Define stages for analyses (a few observations of C3 are removed):
@@ -104,7 +103,7 @@ mtext(side=3,"E. Model predictions",outer=FALSE,line=0.5)
 ####Analyses of growth#####
 
 #Select variables for analyses:
-vars<-colnames(img)[c(9,11,14,20)]
+vars<-colnames(img)[c(9,11,15,21)]
 varnames<-c("Prosome area","Lipid fullness","C:N","ln(RNA:DNA)")
 
 #Define predictor variables:
@@ -214,7 +213,7 @@ lines(c(4.55,10.45),c(11.35,11.35))
 ####Supplementary analyses: Model diagnostics#####
 
 #Model diagnostics for response variables, including RNA:DNA before/after log-transformation
-vars<-colnames(img)[c(9,11,14,19,20)]
+vars<-colnames(img)[c(9,11,15,20,21)]
 varnames<-c("Prosome area","Lipid fullness","C:N","RNA:DNA","log(RNA:DNA)")
 
 #Define predictor variables:
@@ -290,7 +289,7 @@ for(x in 3:5){
 ####Supplementary analyses: Standardized effects#####
 
 #Select variables for analyses:
-vars<-colnames(img)[c(9,11,14,20)]
+vars<-colnames(img)[c(9,11,15,21)]
 varnames<-c("Prosome area","Lipid fullness","C:N","ln(RNA:DNA)")
 
 #Define predictor variables:
@@ -408,7 +407,7 @@ lines(c(4.55,10.45),c(11.35,11.35))
 
 
 ####Supplementary analyses: C, N, DNA and RNA as μg or % of body weight#####
-vars<-colnames(img)[c(12,13,17,18,15,16,21,22)]
+vars<-colnames(img)[c(13,14,18,19,16,17,22,23)]
 varnames<-c("C (μg)","N (μg)","DNA (μg)","RNA (μg)","%C","%N","%DNA","%RNA")
 
 #Define predictor variables:

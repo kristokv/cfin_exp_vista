@@ -1,19 +1,30 @@
-#  Testing...
+#  Calanus finmarchicus experiment - VISTA
 
-<b>R code (rcode folder) and input files (data folder) for analyses of <i>Calanus hyperboreus</i> distribution and energy requirements.</b>
+<b>Data (img.rda) and R code (analyses_cfin.R) to analyze effects of food level and predator cue on <i>Calanus finmarchicus</i> growth and development.<br>
+The data were collected during a lab experiment conducted in September/October 2019 at NTNU SeaLab.</b>
 
-The <b>rcode</b> folder contains the following R scripts:<br>
-<i>gams_chyp.r</i> : Fit GAMs of Chyp abundance data<br> 
-<i>c3_seasonal.r</i> : Plot seasonal variation in Chyp C3 concentrations against growth season<br>
-<i>energy_budget.r</i> : Estimate Chyp energy requirements to develop from N3-C3<br>
-... plus additional files to plot polar-centered maps, draw color image scales and calculate leave-one-year-out cross validation<br>
+<b>img.rda</b> contains the following R variables:<br>
+day: day of sampling during the experiment<br>
+tank: experimental tank (A:L)<br>
+treatment: experimental treatment<br>
+food: food level<br>
+predation: presence or absence of predator cues<br>
+stage: <i>C. finmarchicus</i> developmental stage<br>
+stage_num: numeral of stage<br>
+body_length: prosome length (mm)<br>
+body_area: prosome area (mm2)<br>
+lipid_area: lipid sac area (mm2)<br>
+lipid_fraction: lipid area relative to body area<br>
+tot_μg: body weight (μg)<br>
+C_μg: carbon content (μg)<br>
+N_μg: nitrogen content (μg)<br>
+CN: carbon:nitrogen ratio<br>
+PERC_C: percentage of carbon relative to body weight<br>
+PERC_N: percentage of nitrogen relative to body weight<br>
+DNA_μg: DNA content (μg)<br>
+RNA_μg: RNA content (μg)<br>
+RNA_DNA_ratio: RNA:DNA ratio<br>
+RNA_DNA_ratio_log: natural-log transformed RNA:DNA ratio<br>
+PercDNA: percentage of DNA relative to body weight<br>
+PercRNA: percentage of RNA relative to body weight<br>
 
-
-The <b>data</b> folder contains the following R data files:<br>
-<i>chyp_orig.rda</i>: Original Chyp abundance data in ind.m2 or ind.m3 (see <i>c3_seasonal.r</i>)<br>
-<i>chyp_depthint.rda</i>: Standardized depth integrated Chyp abundance data in ind.m2 (see <i>gams_chyp.r</i>)<br>
-<i>carb_weight_stages.rda</i>: Stage-specific Chyp body weights (see <i>energy_budget.r</i>)<br>
-<i>filtrations.rda</i>: Stage-specific Chyp filtration rates (see <i>energy_budget.r</i>)<br>
-<i>phyto_daymean.rda</i>: Averaged daily phytoplankton/phyto+microzooplankton concentrations (see <i>energy_budget.r</i>/<i>c3_seasonal.r</i>)<br>
-<i>predframe.rda</i>: Dataframe for GAM predictions (see <i>gams_chyp.r</i>)<br> 
-As well as <i>chyp_data_sources.xlsx</i>, a full list of data sources for Chyp abundance data.
