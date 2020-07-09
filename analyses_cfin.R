@@ -91,10 +91,10 @@ for(x in 1:length(treatments)){
                    newdat$predation==unique(img$predation[img$treatment==treatments[x]]),]  
   polygon(x=c(subdat$day,rev(subdat$day)),y=c(subdat$dev_lo,rev(subdat$dev_hi)),
           col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[x]],alpha.f=0.2),border=NA)
-  points(subdat$day,subdat$dev,type="l",lwd=2,col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[x]]))
+  points(subdat$day,subdat$dev,type="l",lty=x,lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[x]]))
 }
 legend("topleft",legend=treatments,horiz=F,bty="n",cex=1.5,
-       col=adjustcolor(col_treatments$col),pch=20)
+       col=adjustcolor(col_treatments$col),pch=20,lty=1:4,x.intersp = 0.2)
 mtext(side=1,"Day",outer=FALSE,line=2)
 mtext(side=2,"Mean stage",outer=FALSE,line=2)
 mtext(side=3,"E. Model predictions",outer=FALSE,line=0.5)
@@ -173,8 +173,8 @@ for(x in 1:length(vars)){
     if(length(unique(subdat$day))<=3){ 
       plot(1,type="n",xlim=c(0.5,4.5),ylim=ylims,axes=F,frame=F,ylab="",xlab="")
       if(vars[x]==vars[4]){
-        legend("top",legend=treatments,horiz=F,bty="n",cex=1.6,
-               col=adjustcolor(col_treatments$col),pch=20)}
+        legend("top",legend=treatments,horiz=F,bty="n",cex=1.5,
+               col=adjustcolor(col_treatments$col),pch=20,lty=1:4,x.intersp = 0.2)}
     }
     #Otherwise, draw predictions:
     if(length(unique(subdat$day))>3){
@@ -186,14 +186,14 @@ for(x in 1:length(vars)){
       newdat$pred_hi<-pred$fit+1.96*pred$se.fit
       newdat$pred_lo<-pred$fit-1.96*pred$se.fit
       #Plot predictions for different treatments:
-      for(i in treatments){
-        daylim<-range(subdat$day[subdat$treatment==i]) #Only plot predictions for days with observations in treatment
+      for(i in 1:length(treatments)){
+        daylim<-range(subdat$day[subdat$treatment==treatments[i]]) #Only plot predictions for days with observations in treatment
         sub_newdat<-newdat[newdat$day>=min(daylim) & newdat$day<=max(daylim) &
-                             newdat$food==unique(img$food[img$treatment==i]) &
-                             newdat$predation==unique(img$predation[img$treatment==i]),]  
+                             newdat$food==unique(img$food[img$treatment==treatments[i]]) &
+                             newdat$predation==unique(img$predation[img$treatment==treatments[i]]),]  
         polygon(x=c(sub_newdat$day,rev(sub_newdat$day)),y=c(sub_newdat$pred_lo,rev(sub_newdat$pred_hi)),
-                col=adjustcolor(col_treatments$col[col_treatments$treatments==i],alpha.f=0.2),border=NA)
-        points(sub_newdat$day,sub_newdat$pred,type="l",lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==i]))
+                col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]],alpha.f=0.2),border=NA)
+        points(sub_newdat$day,sub_newdat$pred,type="l",lty=i,lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]]))
       }
       if(vars[x]==vars[1]){mtext(side=3,stage,outer=F,line=0)}
       if(vars[x]==vars[4] & stage!="C5" | vars[x]==vars[2] & stage=="C4"){
@@ -340,7 +340,7 @@ layout(matrix(c(1:20),nrow=4,ncol=5,byrow=TRUE),widths=c(0.42,rep(0.145,4)))
 par(mar=rep(0,4),oma=c(3.5,3.5,3,1))
 for(x in 1:length(vars)){
   #1: Make boxplot+stripchart per response variable:
-  plot(1,type="n",xlim=c(0,20),ylim=ylims,axes=F,frame=T,ylab="",xlab="")
+  plot(1, type="n",xlim=c(0,20),ylim=ylims,axes=F,frame=T,ylab="",xlab="")
   for(i in 1:4){
     xvals_i<-seq(xvals[i],xvals[i]+3,length.out=4) #Set positions along x-axis
     subdat<-img[img$stage==stages[i] & !is.na(img[,vars[x]]),]
@@ -366,29 +366,29 @@ for(x in 1:length(vars)){
       sd(subdat[,vars[x]],na.rm=T)
     #Draw empty plot if less than 3 days with data:
     if(length(unique(subdat$day))<=3){
-      plot(1,type="n",xlim=c(0.5,4.5),ylim=ylims,axes=F,frame=F,ylab="",xlab="")
+      plot(1, type="n",xlim=c(0.5,4.5),ylim=ylims,axes=F,frame=F,ylab="",xlab="")
       if(vars[x]==vars[4]){
-        legend("top",legend=treatments,horiz=F,bty="n",cex=1.6,
-               col=adjustcolor(col_treatments$col),pch=20)}
+        legend("top",legend=treatments,horiz=F,bty="n",cex=1.5,
+               col=adjustcolor(col_treatments$col),pch=20,lty=1:4,x.intersp = 0.2)}
     }
     #Otherwise, draw predictions:
     if(length(unique(subdat$day))>3){
       xlims<-range(img$day[img$stage==stage]) #Limits of x-axis are stage-specific
-      plot(1,type="n",xlim=xlims,ylim=ylims,axes=F,frame=T,ylab="",xlab="") #Plot background
-      gam_xvar<-gam(formula(paste(Xvar,paste(yvar,collapse="+"))),data=subdat) #GAM fit
-      pred<-predict.gam(gam_xvar,newdata=newdat,type="response",se.fit=T) #Model predictions
+      plot(1, type="n",xlim=xlims,ylim=ylims,axes=F,frame=T,ylab="",xlab="") #Plot background
+      gam_xvar<-gam(formula(paste(Xvar, paste(yvar, collapse="+"))),data=subdat) #GAM fit
+      pred<-predict.gam(gam_xvar,newdata=newdat,type="response",se.fit = T) #Model predictions
       newdat$pred<-pred$fit
       newdat$pred_hi<-pred$fit+1.96*pred$se.fit
       newdat$pred_lo<-pred$fit-1.96*pred$se.fit
       #Plot predictions for different treatments:
-      for(i in treatments){
-        daylim<-range(subdat$day[subdat$treatment==i]) #Only plot predictions for days with observations in treatment
+      for(i in 1:length(treatments)){
+        daylim<-range(subdat$day[subdat$treatment==treatments[i]]) #Only plot predictions for days with observations in treatment
         sub_newdat<-newdat[newdat$day>=min(daylim) & newdat$day<=max(daylim) &
-                             newdat$food==unique(img$food[img$treatment==i]) &
-                             newdat$predation==unique(img$predation[img$treatment==i]),]  
+                             newdat$food==unique(img$food[img$treatment==treatments[i]]) &
+                             newdat$predation==unique(img$predation[img$treatment==treatments[i]]),]  
         polygon(x=c(sub_newdat$day,rev(sub_newdat$day)),y=c(sub_newdat$pred_lo,rev(sub_newdat$pred_hi)),
-                col=adjustcolor(col_treatments$col[col_treatments$treatments==i],alpha.f=0.2),border=NA)
-        points(sub_newdat$day,sub_newdat$pred,type="l",lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==i]))
+                col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]],alpha.f=0.2),border=NA)
+        points(sub_newdat$day,sub_newdat$pred,type="l",lty=i,lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]]))
       }
       if(vars[x]==vars[1]){mtext(side=3,stage,outer=F,line=0)}
       if(vars[x]==vars[4] & stage!="C5" | vars[x]==vars[2] & stage=="C4"){
@@ -401,10 +401,9 @@ for(x in 1:length(vars)){
 mtext(side=1,"Day",outer=T,line=2.25,adj=0.75)
 mtext(side=3,"B. Temporal variation",outer=T,line=1.75,adj=0.8)
 #Draw line on top of plot
-par(mfrow=c(1,1),xpd=NA,new=TRUE) 
-plot(1:10,1:10,type="n",axes=FALSE,xlab="",ylab="",main="")
+par(mfrow=c(1,1),xpd = NA,new=TRUE) 
+plot(1:10,1:10, type = "n", axes = FALSE, xlab = "", ylab = "", main = "")
 lines(c(4.55,10.45),c(11.35,11.35))
-
 
 ####Supplementary analyses: C, N, DNA and RNA as μg or % of body weight#####
 vars<-colnames(img)[c(13,14,18,19,16,17,22,23)]
@@ -421,8 +420,8 @@ yvar<-list(
 )
 
 #Create table for R2, factor coefficients and P-values:
-modtab_growth_supp<-array(NA,dim=c(length(stages),5+length(yvar),length(vars)))
-dimnames(modtab_growth_supp)<-list(stages,c("R2","Food","Predation",yvar[1:4],
+modtab_growth_supp<-array(NA,dim=c(length(stages)-1,5+length(yvar),length(vars)))
+dimnames(modtab_growth_supp)<-list(stages[-1],c("R2","Food","Predation",yvar[1:4],
                                        "DayxLoF","DayxHiF","DayxLoP","DayxHiP"),varnames)
 
 #Fit models and fill table for all response variables and stages:
@@ -451,11 +450,12 @@ newdat<-data.frame(day=rep(1:24,4),food=rep(levels(img$food),each=24*2),
 xvals<-c(0.5,5.5,11,16.5) #X-axis location per stage for boxplot
 
 layout(matrix(c(1:32),nrow=8,ncol=4,byrow=TRUE),widths=c(0.55,rep(0.15,3)))
-par(mar=rep(0,4),oma=c(3.5,3.5,3,1))
+par(mar=c(0.25,0,0.1,0),oma=c(3,3.5,3,1))
 for(x in 1:length(vars)){
   ylims<-range(img[,vars[x]],na.rm=T) #Limits of y-axis depends on variable
   #1: Make boxplot+stripchart per response variable:
-  plot(1,type="n",xlim=c(0,20),ylim=ylims,axes=F,frame=T,ylab="",xlab="")
+  plot(1, type="n",xlim=c(0,20),ylim=ylims,axes=F,frame=T,ylab="",xlab="")
+  #box(lwd=2)
   for(i in 1:length(stages)){
     xvals_i<-seq(xvals[i],xvals[i]+3,length.out=4) #Set positions along x-axis
     subdat<-img[img$stage==stages[i],] #Subset data for stage
@@ -467,37 +467,38 @@ for(x in 1:length(vars)){
   mtext(side=2,varnames[x],outer=F,line=2)
   Axis(side=2)
   if(vars[x]==vars[length(vars)]){Axis(side=1,at=c(2,7,12.5,18),labels=stages);
-    mtext(side=1,"Stages",line=2.25)}
-  if(vars[x]==vars[1]){mtext(side=3,"A. Overall variation",outer=F,line=0)}
+    mtext(side=1,"Stages",line=2)}
+  if(vars[x]==vars[1]){mtext(side=3,"A. Overall variation",outer=F,line=0);
+    legend("topleft",legend=treatments,horiz=F,bty="n",cex=1.5,
+           col=adjustcolor(col_treatments$col),pch=20,lty=1:4,x.intersp = 0.2,y.intersp = 0.75)}
   #2: Plot model predictions per stage (excluding C4):
   Xvar<-paste0(vars[x],"~") #Define response variable
   for(stage in stages[-1]){
     subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),] #Subset data per stage
     xlims<-range(img$day[img$stage==stage]) #Limits of x-axis are stage-specific
-    plot(1,type="n",xlim=xlims,ylim=ylims,axes=F,frame=T,ylab="",xlab="") #Plot background
-    gam_xvar<-gam(formula(paste(Xvar,paste(yvar,collapse="+"))),data=subdat) #GAM fit
-    pred<-predict.gam(gam_xvar,newdata=newdat,type="response",se.fit=T) #Model predictions
+    plot(1, type="n",xlim=xlims,ylim=ylims,axes=F,frame=T,ylab="",xlab="") #Plot background
+    gam_xvar<-gam(formula(paste(Xvar, paste(yvar, collapse="+"))),data=subdat) #GAM fit
+    pred<-predict.gam(gam_xvar,newdata=newdat,type="response",se.fit = T) #Model predictions
     newdat$pred<-pred$fit
     newdat$pred_hi<-pred$fit+1.96*pred$se.fit
     newdat$pred_lo<-pred$fit-1.96*pred$se.fit
     #Plot predictions for different treatments:
-    for(i in treatments){
-      daylim<-range(subdat$day[subdat$treatment==i]) #Only plot predictions for days with observations in treatment
+    for(i in 1:length(treatments)){
+      daylim<-range(subdat$day[subdat$treatment==treatments[i]]) #Only plot predictions for days with observations in treatment
       sub_newdat<-newdat[newdat$day>=min(daylim) & newdat$day<=max(daylim) &
-                             newdat$food==unique(img$food[img$treatment==i]) &
-                             newdat$predation==unique(img$predation[img$treatment==i]),]  
+                           newdat$food==unique(img$food[img$treatment==treatments[i]]) &
+                           newdat$predation==unique(img$predation[img$treatment==treatments[i]]),]  
       polygon(x=c(sub_newdat$day,rev(sub_newdat$day)),y=c(sub_newdat$pred_lo,rev(sub_newdat$pred_hi)),
-                col=adjustcolor(col_treatments$col[col_treatments$treatments==i],alpha.f=0.2),border=NA)
-      points(sub_newdat$day,sub_newdat$pred,type="l",lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==i]))
+              col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]],alpha.f=0.2),border=NA)
+      points(sub_newdat$day,sub_newdat$pred,type="l",lty=i,lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]]))
     }
     if(vars[x]==vars[1]){mtext(side=3,stage,outer=F,line=0)}
     if(vars[x]==vars[length(vars)]){Axis(side=1,at=seq(1,24,by=6))}
   }
 }
-mtext(side=1,"Day",outer=T,line=2.25,adj=0.75)
-mtext(side=3,"B. Temporal variation",outer=T,line=1.87,adj=0.9)
+mtext(side=1,"Day",outer=T,line=2,adj=0.8)
+mtext(side=3,"B. Temporal variation",outer=T,line=1.75,adj=0.85)
 #Draw line on top of plot:
-par(mfrow=c(1,1),xpd=NA,new=TRUE) 
-plot(1:10,1:10,type="n",axes=FALSE,xlab="",ylab="",main="")
-lines(c(5.9,10.45),c(11.35,11.35))
-
+par(mfrow=c(1,1),xpd = NA,new=TRUE) 
+plot(1:10,1:10, type = "n", axes = FALSE, xlab = "", ylab = "", main = "")
+lines(c(5.9,10.45),c(11,11))
