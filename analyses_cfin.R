@@ -125,6 +125,9 @@ dimnames(modtab_growth)<-list(stages,c("R2","Food","Predation",yvar[1:4],
 for(x in 1:length(vars)){
   for(stage in stages){
     subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),] #Subset data for stage
+    #For table, set response variable to standardized within stage:
+    subdat[,vars[x]]<-(subdat[,vars[x]]-mean(subdat[,vars[x]],na.rm=T))/
+      sd(subdat[,vars[x]],na.rm=T)
     Xvar<-paste0(vars[x],"~") #Define response variable
     #Fit GAM if there are data available for 3 unique sampling days:
     if(length(unique(subdat$day))>3){
@@ -144,6 +147,11 @@ newdat<-data.frame(day=rep(1:24,4),food=rep(levels(img$food),each=24*2),
                    predation=rep(rep(levels(img$predation),each=24),2),tank="G")
 
 #Plot variation in observations + model predictions 
+
+panels<-array(c(LETTERS[5:6],c(NA,NA),LETTERS[7:16]), #Panel numbering
+              dim=c(length(vars),length(stages)),
+              dimnames = list(vars,stages))
+
 xvals<-c(0.5,5.5,11,16.5) #X-axis location per stage for boxplot
 
 layout(matrix(c(1:20),nrow=4,ncol=5,byrow=TRUE),widths=c(0.42,rep(0.145,4)))
@@ -161,6 +169,7 @@ for(x in 1:length(vars)){
             lwd=0.5,axes=F,frame=T,at=xvals_i)
   }
   mtext(side=2,varnames[x],outer=F,line=2)
+  mtext(side=3,paste0(LETTERS[x],"."),outer=F,line=-2,adj=0.05,col="grey40")
   Axis(side=2)
   if(vars[x]==vars[4]){Axis(side=1,at=c(2,7,12.5,18),labels=stages);
     mtext(side=1,"Stages",line=2.25)}
@@ -195,6 +204,7 @@ for(x in 1:length(vars)){
                 col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]],alpha.f=0.2),border=NA)
         points(sub_newdat$day,sub_newdat$pred,type="l",lty=i,lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]]))
       }
+      mtext(side=3,paste0(panels[vars[x],stage],"."),outer=F,line=-2,adj=0.05,col="grey40")
       if(vars[x]==vars[1]){mtext(side=3,stage,outer=F,line=0)}
       if(vars[x]==vars[4] & stage!="C5" | vars[x]==vars[2] & stage=="C4"){
         Axis(side=1,at=seq(min(xlims),max(xlims-2),length.out=3))}
@@ -286,124 +296,6 @@ for(x in 3:5){
   mtext(side=3,paste0("Model diagnostics: ",varnames[x]),outer=TRUE,line=2,font=2)
 }
 
-####Supplementary analyses: Standardized effects#####
-
-#Select variables for analyses:
-vars<-colnames(img)[c(9,11,15,21)]
-varnames<-c("Prosome area","Lipid fullness","C:N","ln(RNA:DNA)")
-
-#Define predictor variables:
-yvar<-list(
-  "food",
-  "predation",
-  "s(day,k=4)",
-  "s(tank,bs='re')",
-  "s(day,k=4,by=food)",
-  "s(day,k=4,by=predation)"
-)
-
-#Create table for R2, factor coefficients and P-values:
-modtab_growth_standardized<-array(NA,dim=c(length(stages),5+length(yvar),length(vars)))
-dimnames(modtab_growth_standardized)<-list(stages,c("R2","Food","Predation",yvar[1:4],
-                                       "DayxLoF","DayxHiF","DayxLoP","DayxHiP"),varnames)
-
-#Fit models and fill table for all response variables and stages:
-for(x in 1:length(vars)){
-  for(stage in stages){
-    subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),] #Subset data for stage
-    #Convert to standardized within stage:
-    subdat[,vars[x]]<-(subdat[,vars[x]]-mean(subdat[,vars[x]],na.rm=T))/
-      sd(subdat[,vars[x]],na.rm=T)
-    Xvar<-paste0(vars[x],"~") #Define response variable
-    #Fit GAM if there are data available for 3 unique sampling days:
-    if(length(unique(subdat$day))>3){
-      gam_xvar<-gam(formula(paste(Xvar,paste(yvar,collapse="+"))),data=subdat)
-      modtab_growth_standardized[stage,1,varnames[x]]<-summary(gam_xvar)$r.sq #R2
-      modtab_growth_standardized[stage,2:3,varnames[x]]<-summary(gam_xvar)$p.table[2:3,1] #Factor term coefficients
-      modtab_growth_standardized[stage,unlist(yvar[1:2]),varnames[x]]<-summary(gam_xvar)$p.table[2:3,4] #P-values factor terms 
-      modtab_growth_standardized[stage,unlist(yvar[3:4]),varnames[x]]<-summary(gam_xvar)$s.table[1:2,4] #P-values simple smooth terms 
-      modtab_growth_standardized[stage,8:11,varnames[x]]<-summary(gam_xvar)$s.table[3:6,4] #P-values varying coefficient terms
-    }
-  }
-}
-
-#Create empty dataframe to store model predictions:
-#'newdat' contains all combinations of day and treatment (tank is random):
-newdat<-data.frame(day=rep(1:24,4),food=rep(levels(img$food),each=24*2),
-                   predation=rep(rep(levels(img$predation),each=24),2),tank="G")
-
-#Plot variation in observations + model predictions 
-xvals<-c(0.5,5.5,11,16.5) #X-axis location per stage for boxplot
-ylims<-c(-5.5,4.2) #Fixed range of y-axis
-
-layout(matrix(c(1:20),nrow=4,ncol=5,byrow=TRUE),widths=c(0.42,rep(0.145,4)))
-par(mar=rep(0,4),oma=c(3.5,3.5,3,1))
-for(x in 1:length(vars)){
-  #1: Make boxplot+stripchart per response variable:
-  plot(1, type="n",xlim=c(0,20),ylim=ylims,axes=F,frame=T,ylab="",xlab="")
-  for(i in 1:4){
-    xvals_i<-seq(xvals[i],xvals[i]+3,length.out=4) #Set positions along x-axis
-    subdat<-img[img$stage==stages[i] & !is.na(img[,vars[x]]),]
-    #Set response variable to standardized within stage:
-    subdat[,vars[x]]<-(subdat[,vars[x]]-mean(subdat[,vars[x]],na.rm=T))/
-      sd(subdat[,vars[x]],na.rm=T)
-    stripchart(subdat[,vars[x]]~subdat$treatment,add=T,vertical=T,pch=20,cex=0.4,col=adjustcolor(col_treatments$col),
-               method="jitter",jitter=0.1,ylim=ylims,axes=F,frame=T,at=xvals_i,lwd=0)
-    boxplot(subdat[,vars[x]]~subdat$treatment,outline=FALSE,add=T,col=adjustcolor(col_treatments$col,alpha.f=0.2),
-            lwd=0.5,axes=F,frame=T,at=xvals_i)
-  }
-  mtext(side=2,varnames[x],outer=F,line=2)
-  Axis(side=2)
-  if(vars[x]==vars[4]){Axis(side=1,at=c(2,7,12.5,18),labels=stages);
-    mtext(side=1,"Stages",line=2.25)}
-  if(vars[x]==vars[1]){mtext(side=3,"A. Overall variation",outer=F,line=0)}
-  #2: Plot model predictions per stage:
-  Xvar<-paste0(vars[x],"~") #Define response variable
-  for(stage in stages){
-    subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),] #Subset data per stage
-    #Set response variable to standardized within stage:
-    subdat[,vars[x]]<-(subdat[,vars[x]]-mean(subdat[,vars[x]],na.rm=T))/
-      sd(subdat[,vars[x]],na.rm=T)
-    #Draw empty plot if less than 3 days with data:
-    if(length(unique(subdat$day))<=3){
-      plot(1, type="n",xlim=c(0.5,4.5),ylim=ylims,axes=F,frame=F,ylab="",xlab="")
-      if(vars[x]==vars[4]){
-        legend("top",legend=treatments,horiz=F,bty="n",cex=1.5,
-               col=adjustcolor(col_treatments$col),pch=20,lty=1:4,x.intersp = 0.2)}
-    }
-    #Otherwise, draw predictions:
-    if(length(unique(subdat$day))>3){
-      xlims<-range(img$day[img$stage==stage]) #Limits of x-axis are stage-specific
-      plot(1, type="n",xlim=xlims,ylim=ylims,axes=F,frame=T,ylab="",xlab="") #Plot background
-      gam_xvar<-gam(formula(paste(Xvar, paste(yvar, collapse="+"))),data=subdat) #GAM fit
-      pred<-predict.gam(gam_xvar,newdata=newdat,type="response",se.fit = T) #Model predictions
-      newdat$pred<-pred$fit
-      newdat$pred_hi<-pred$fit+1.96*pred$se.fit
-      newdat$pred_lo<-pred$fit-1.96*pred$se.fit
-      #Plot predictions for different treatments:
-      for(i in 1:length(treatments)){
-        daylim<-range(subdat$day[subdat$treatment==treatments[i]]) #Only plot predictions for days with observations in treatment
-        sub_newdat<-newdat[newdat$day>=min(daylim) & newdat$day<=max(daylim) &
-                             newdat$food==unique(img$food[img$treatment==treatments[i]]) &
-                             newdat$predation==unique(img$predation[img$treatment==treatments[i]]),]  
-        polygon(x=c(sub_newdat$day,rev(sub_newdat$day)),y=c(sub_newdat$pred_lo,rev(sub_newdat$pred_hi)),
-                col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]],alpha.f=0.2),border=NA)
-        points(sub_newdat$day,sub_newdat$pred,type="l",lty=i,lwd=1.5,col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[i]]))
-      }
-      if(vars[x]==vars[1]){mtext(side=3,stage,outer=F,line=0)}
-      if(vars[x]==vars[4] & stage!="C5" | vars[x]==vars[2] & stage=="C4"){
-        Axis(side=1,at=seq(min(xlims),max(xlims-2),length.out=3))}
-      if(vars[x]==vars[4] & stage=="C5"){
-        Axis(side=1,at=seq(min(xlims),max(xlims-3),length.out=3))}
-    }
-  }
-}
-mtext(side=1,"Day",outer=T,line=2.25,adj=0.75)
-mtext(side=3,"B. Temporal variation",outer=T,line=1.75,adj=0.8)
-#Draw line on top of plot
-par(mfrow=c(1,1),xpd = NA,new=TRUE) 
-plot(1:10,1:10, type = "n", axes = FALSE, xlab = "", ylab = "", main = "")
-lines(c(4.55,10.45),c(11.35,11.35))
 
 ####Supplementary analyses: C, N, DNA and RNA as μg or % of body weight#####
 vars<-colnames(img)[c(13,14,18,19,16,17,22,23)]
@@ -428,6 +320,9 @@ dimnames(modtab_growth_supp)<-list(stages[-1],c("R2","Food","Predation",yvar[1:4
 for(x in 1:length(vars)){
   for(stage in stages){
     subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),] #Subset data for stage
+    #For table, set response variable to standardized within stage:
+    subdat[,vars[x]]<-(subdat[,vars[x]]-mean(subdat[,vars[x]],na.rm=T))/
+      sd(subdat[,vars[x]],na.rm=T)
     Xvar<-paste0(vars[x],"~") #Define response variable
     #Fit GAM if there are data available for 3 unique sampling days:
     if(length(unique(subdat$day))>3){
