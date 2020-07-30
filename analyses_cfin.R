@@ -4,6 +4,7 @@
 
 #Load libraries and data file:
 library(mgcv)
+library(plyr)
 load("img.rda")
 
 #Experimental treatments:
@@ -21,11 +22,14 @@ img$col<-col_treatments$col[match(img$treatment,col_treatments$treatments)]
 
 ####Analyses of development####
 
+#Calculate mean developmental stage per day and tank:
+img_mean<-ddply(img,.(day,tank),summarise,stage_num=mean(stage_num),
+                food=unique(food),predation=unique(predation))
+
 #Set predictor variables:
 yvar<-list(
   "food",
   "predation",
-  "s(day,k=4)",
   "s(tank,bs='re')",
   "s(day,k=4,by=food)",
   "s(day,k=4,by=predation)"
@@ -35,17 +39,17 @@ yvar<-list(
 Xvar<-"stage_num~"
 
 #Fit GAM:
-mod_dev<-gam(formula(paste(Xvar,paste(yvar,collapse="+"))),data=img)
+mod_dev<-gam(formula(paste(Xvar,paste(yvar,collapse="+"))),data=img_mean)
 
 #Create table for R2, factor coefficients and P-values:
 modtab_dev<-rep(NA,5+length(yvar))
-names(modtab_dev)<-c("R2","Food","Predation",yvar[1:4],"DayxLoF","DayxHiF","DayxLoP","DayxHiP")
-
+names(modtab_dev)<-c("R2","Food","Predation",yvar[1:3],
+                     "DayxLoF","DayxHiF","DayxLoP","DayxHiP")
 modtab_dev[1]<-summary(mod_dev)$r.sq #R2
-modtab_dev[2:3]<-summary(mod_dev)$p.table[2:3,1] #Factor term coefficients
+modtab_dev[2:3]<-summary(mod_dev)$p.table[2:3,1] #Factor terms coefficients
 modtab_dev[unlist(yvar[1:2])]<-summary(mod_dev)$p.table[2:3,4] #P-values factor terms 
-modtab_dev[unlist(yvar[3:4])]<-summary(mod_dev)$s.table[1:2,4] #P-values simple smooth terms 
-modtab_dev[c("DayxLoF","DayxHiF","DayxLoP","DayxHiP")]<-summary(mod_dev)$s.table[3:6,4] #P-values varying coefficient terms
+modtab_dev[unlist(yvar[3])]<-summary(mod_dev)$s.table[1,4] #P-values simple smooth term
+modtab_dev[c("DayxLoF","DayxHiF","DayxLoP","DayxHiP")]<-summary(mod_dev)$s.table[2:5,4] #P-values varying coefficient terms
 
 #Make predictions of stage number for new data frame 
 #'newdat' contains all combinations of day and treatment (tank is random):
@@ -110,7 +114,6 @@ varnames<-c("Prosome area","Lipid fullness","C:N","ln(RNA:DNA)")
 yvar<-list(
   "food",
   "predation",
-  "s(day,k=4)",
   "s(tank,bs='re')",
   "s(day,k=4,by=food)",
   "s(day,k=4,by=predation)"
@@ -118,7 +121,7 @@ yvar<-list(
 
 #Create table for R2, factor coefficients and P-values:
 modtab_growth<-array(NA,dim=c(length(stages),5+length(yvar),length(vars)))
-dimnames(modtab_growth)<-list(stages,c("R2","Food","Predation",yvar[1:4],
+dimnames(modtab_growth)<-list(stages,c("R2","Food","Predation",yvar[1:3],
                                        "DayxLoF","DayxHiF","DayxLoP","DayxHiP"),varnames)
 
 #Fit models and fill table for all response variables and stages:
@@ -135,8 +138,8 @@ for(x in 1:length(vars)){
       modtab_growth[stage,1,varnames[x]]<-summary(gam_xvar)$r.sq #R2
       modtab_growth[stage,2:3,varnames[x]]<-summary(gam_xvar)$p.table[2:3,1] #Factor term coefficients
       modtab_growth[stage,unlist(yvar[1:2]),varnames[x]]<-summary(gam_xvar)$p.table[2:3,4] #P-values factor terms 
-      modtab_growth[stage,unlist(yvar[3:4]),varnames[x]]<-summary(gam_xvar)$s.table[1:2,4] #P-values simple smooth terms 
-      modtab_growth[stage,8:11,varnames[x]]<-summary(gam_xvar)$s.table[3:6,4] #P-values varying coefficient terms
+      modtab_growth[stage,unlist(yvar[3]),varnames[x]]<-summary(gam_xvar)$s.table[1,4] #P-values simple smooth terms 
+      modtab_growth[stage,7:10,varnames[x]]<-summary(gam_xvar)$s.table[2:5,4] #P-values varying coefficient terms
     }
   }
 }
@@ -147,7 +150,6 @@ newdat<-data.frame(day=rep(1:24,4),food=rep(levels(img$food),each=24*2),
                    predation=rep(rep(levels(img$predation),each=24),2),tank="G")
 
 #Plot variation in observations + model predictions 
-
 panels<-array(c(LETTERS[5:6],c(NA,NA),LETTERS[7:16]), #Panel numbering
               dim=c(length(vars),length(stages)),
               dimnames = list(vars,stages))
@@ -223,22 +225,44 @@ lines(c(4.55,10.45),c(11.35,11.35))
 ####Supplementary analyses: Model diagnostics#####
 
 #Model diagnostics for response variables, including RNA:DNA before/after log-transformation
-vars<-colnames(img)[c(9,11,15,20,21)]
-varnames<-c("Prosome area","Lipid fullness","C:N","RNA:DNA","log(RNA:DNA)")
 
 #Define predictor variables:
 yvar<-list(
   "food",
   "predation",
-  "s(day,k=4)",
   "s(tank,bs='re')",
   "s(day,k=4,by=food)",
   "s(day,k=4,by=predation)"
 )
 
+#For mean developmental stage (Eq. 1):
+par(mfrow=c(1,5),mar=rep(1.5,4),oma=c(1,2,4,0),xpd=FALSE)
+# Distribution of data:
+hist(img_mean$stage_num,main="")
+mtext(side=3,"A. Data")
+#Plot model diagnostics:
+resid <- residuals(mod_dev)
+linpred <- napredict(mod_dev$na.action, mod_dev$linear.predictors)
+observed.y <- napredict(mod_dev$na.action, mod_dev$y)
+qq.gam(mod_dev)
+mtext(side=3,"B. Q-Q plot")
+hist(resid, xlab = "", main = "")
+mtext(side=3,"C. Residuals")
+plot(linpred, resid)
+mtext(side=3,"D. Residuals vs.",line=1)
+mtext(side=3,"linear pred.")
+plot(fitted(mod_dev), observed.y)
+mtext(side=3,"E. Response vs.",line=1)
+mtext(side=3,"fitted")
+mtext(side=3,"Model diagnostics: Mean developmental stage",outer=TRUE,line=2,font=2)
+
+#For growth (Eq. 2):
+vars<-colnames(img)[c(9,11,15,20,21)]
+varnames<-c("Prosome area","Lipid fullness","C:N","RNA:DNA","log(RNA:DNA)")
+
 #Plots for body area and lipid fraction (all stages):
 for(x in 1:2){
-  par(mfrow=c(length(stages),5),mar=rep(1.5,4),oma=c(1,2,4,0),xpd=FALSE)
+  par(mfrow=c(length(stages),5),mar=rep(1.5,4),oma=c(1,2,4,0))
   for(stage in stages){
     #Plot distribution of data:
     subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),]
@@ -305,7 +329,6 @@ varnames<-c("C (μg)","N (μg)","DNA (μg)","RNA (μg)","%C","%N","%DNA","%RNA")
 yvar<-list(
   "food",
   "predation",
-  "s(day,k=4)",
   "s(tank,bs='re')",
   "s(day,k=4,by=food)",
   "s(day,k=4,by=predation)"
@@ -313,7 +336,7 @@ yvar<-list(
 
 #Create table for R2, factor coefficients and P-values:
 modtab_growth_supp<-array(NA,dim=c(length(stages)-1,5+length(yvar),length(vars)))
-dimnames(modtab_growth_supp)<-list(stages[-1],c("R2","Food","Predation",yvar[1:4],
+dimnames(modtab_growth_supp)<-list(stages[-1],c("R2","Food","Predation",yvar[1:3],
                                        "DayxLoF","DayxHiF","DayxLoP","DayxHiP"),varnames)
 
 #Fit models and fill table for all response variables and stages:
@@ -330,8 +353,8 @@ for(x in 1:length(vars)){
       modtab_growth_supp[stage,1,varnames[x]]<-summary(gam_xvar)$r.sq #R2
       modtab_growth_supp[stage,2:3,varnames[x]]<-summary(gam_xvar)$p.table[2:3,1] #Factor term coefficients
       modtab_growth_supp[stage,unlist(yvar[1:2]),varnames[x]]<-summary(gam_xvar)$p.table[2:3,4] #P-values factor terms 
-      modtab_growth_supp[stage,unlist(yvar[3:4]),varnames[x]]<-summary(gam_xvar)$s.table[1:2,4] #P-values simple smooth terms 
-      modtab_growth_supp[stage,8:11,varnames[x]]<-summary(gam_xvar)$s.table[3:6,4] #P-values varying coefficient terms
+      modtab_growth_supp[stage,unlist(yvar[3]),varnames[x]]<-summary(gam_xvar)$s.table[1,4] #P-values simple smooth terms 
+      modtab_growth_supp[stage,7:10,varnames[x]]<-summary(gam_xvar)$s.table[2:5,4] #P-values varying coefficient terms
     }
   }
 }
@@ -397,3 +420,4 @@ mtext(side=3,"B. Temporal variation",outer=T,line=1.75,adj=0.85)
 par(mfrow=c(1,1),xpd = NA,new=TRUE) 
 plot(1:10,1:10, type = "n", axes = FALSE, xlab = "", ylab = "", main = "")
 lines(c(5.9,10.45),c(11,11))
+
