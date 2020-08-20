@@ -75,7 +75,7 @@ for(x in 1:length(treatments)){
   if(x==2){barplot(perc,legend=FALSE,col=adjustcolor(col_stages$col),xaxt="n",yaxt="n",border=NA,axis.lty=1)}
   if(x==3){barplot(perc,legend=FALSE,col=adjustcolor(col_stages$col),border=NA,axis.lty=1)}
   if(x==4){barplot(perc,legend=FALSE,col=adjustcolor(col_stages$col),yaxt="n",border=NA,axis.lty=1)}
-  mtext(side=3,paste0(LETTERS[x],"."),outer=F,line=0.25,adj=0.15)
+  mtext(side=3,paste0(letters[x],"."),outer=F,line=0.25,adj=0.15)
   mtext(side=3,treatments[x],col=adjustcolor(col_treatments$col[col_treatments$treatments==treatments[x]]),
         outer=F,line=0.25,adj=0.35)
   if(x%in% c(3,4)){ mtext(side=1,"Day",outer=FALSE,line=2)}
@@ -150,7 +150,7 @@ newdat<-data.frame(day=rep(1:24,4),food=rep(levels(img$food),each=24*2),
                    predation=rep(rep(levels(img$predation),each=24),2),tank="G")
 
 #Plot variation in observations + model predictions 
-panels<-array(c(LETTERS[5:6],c(NA,NA),LETTERS[7:16]), #Panel numbering
+panels<-array(c(letters[5:6],c(NA,NA),letters[7:18]), #Panel numbering
               dim=c(length(vars),length(stages)),
               dimnames = list(vars,stages))
 
@@ -171,7 +171,7 @@ for(x in 1:length(vars)){
             lwd=0.5,axes=F,frame=T,at=xvals_i)
   }
   mtext(side=2,varnames[x],outer=F,line=2)
-  mtext(side=3,paste0(LETTERS[x],"."),outer=F,line=-2,adj=0.05,col="grey40")
+  mtext(side=3,paste0(letters[x],"."),outer=F,line=-2,adj=0.05,col="grey40")
   Axis(side=2)
   if(vars[x]==vars[4]){Axis(side=1,at=c(2,7,12.5,18),labels=stages);
     mtext(side=1,"Stages",line=2.25)}
@@ -239,20 +239,20 @@ yvar<-list(
 par(mfrow=c(1,5),mar=rep(1.5,4),oma=c(1,2,4,0),xpd=FALSE)
 # Distribution of data:
 hist(img_mean$stage_num,main="")
-mtext(side=3,"A. Data")
+mtext(side=3,"a. Data")
 #Plot model diagnostics:
 resid <- residuals(mod_dev)
 linpred <- napredict(mod_dev$na.action, mod_dev$linear.predictors)
 observed.y <- napredict(mod_dev$na.action, mod_dev$y)
 qq.gam(mod_dev)
-mtext(side=3,"B. Q-Q plot")
+mtext(side=3,"b. Q-Q plot")
 hist(resid, xlab = "", main = "")
-mtext(side=3,"C. Residuals")
+mtext(side=3,"c. Residuals")
 plot(linpred, resid)
-mtext(side=3,"D. Residuals vs.",line=1)
+mtext(side=3,"d. Residuals vs.",line=1)
 mtext(side=3,"linear pred.")
 plot(fitted(mod_dev), observed.y)
-mtext(side=3,"E. Response vs.",line=1)
+mtext(side=3,"e. Response vs.",line=1)
 mtext(side=3,"fitted")
 mtext(side=3,"Model diagnostics: Mean developmental stage",outer=TRUE,line=2,font=2)
 
@@ -267,7 +267,7 @@ for(x in 1:2){
     #Plot distribution of data:
     subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),]
     hist(subdat[,vars[x]],main="")
-    if(stage==stages[1]){mtext(side=3,"A. Data")}
+    if(stage==stages[1]){mtext(side=3,"a. Data")}
     mtext(side=2,outer=F,stage,line=2)
     #Fit GAM:
     Xvar<-paste0(vars[x],"~")
@@ -277,14 +277,14 @@ for(x in 1:2){
     linpred <- napredict(gam_xvar$na.action,gam_xvar$linear.predictors)
     observed.y <- napredict(gam_xvar$na.action,gam_xvar$y)
     qq.gam(gam_xvar)
-    if(stage==stages[1]){mtext(side=3,"B. Q-Q plot")}
+    if(stage==stages[1]){mtext(side=3,"b. Q-Q plot")}
     hist(resid,xlab="",main="")
-    if(stage==stages[1]){mtext(side=3,"C. Residuals")}
+    if(stage==stages[1]){mtext(side=3,"c. Residuals")}
     plot(linpred,resid)
-    if(stage==stages[1]){mtext(side=3,"D. Residuals vs.",line=1);
+    if(stage==stages[1]){mtext(side=3,"d. Residuals vs.",line=1);
       mtext(side=3,"linear pred.")}
     plot(fitted(gam_xvar),observed.y)
-    if(stage==stages[1]){mtext(side=3,"E. Response vs.",line=1);
+    if(stage==stages[1]){mtext(side=3,"e. Response vs.",line=1);
       mtext(side=3,"fitted")}
   }
   mtext(side=3,paste0("Model diagnostics: ",varnames[x]),outer=TRUE,line=2,font=2)
@@ -297,7 +297,7 @@ for(x in 3:5){
     #Plot distribution of data:
     subdat<-img[img$stage==stage & !is.na(img[,vars[x]]),]
     hist(subdat[,vars[x]],main="")
-    if(stage==stages[2]){mtext(side=3,"A. Data")}
+    if(stage==stages[2]){mtext(side=3,"a. Data")}
     mtext(side=2,outer=F,stage,line=2)
     #Fit GAM:
     Xvar<-paste0(vars[x],"~")
@@ -307,14 +307,14 @@ for(x in 3:5){
     linpred <- napredict(gam_xvar$na.action,gam_xvar$linear.predictors)
     observed.y <- napredict(gam_xvar$na.action,gam_xvar$y)
     qq.gam(gam_xvar)
-    if(stage==stages[2]){mtext(side=3,"B. Q-Q plot")}
+    if(stage==stages[2]){mtext(side=3,"b. Q-Q plot")}
     hist(resid,xlab="",main="")
-    if(stage==stages[2]){mtext(side=3,"C. Residuals")}
+    if(stage==stages[2]){mtext(side=3,"c. Residuals")}
     plot(linpred,resid)
-    if(stage==stages[2]){mtext(side=3,"D. Residuals vs.",line=1);
+    if(stage==stages[2]){mtext(side=3,"d. Residuals vs.",line=1);
       mtext(side=3,"linear pred.")}
     plot(fitted(gam_xvar),observed.y)
-    if(stage==stages[2]){mtext(side=3,"E. Response vs.",line=1);
+    if(stage==stages[2]){mtext(side=3,"e. Response vs.",line=1);
       mtext(side=3,"fitted")}
   }
   mtext(side=3,paste0("Model diagnostics: ",varnames[x]),outer=TRUE,line=2,font=2)
